@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 
 type Attendance = { id: number; date: string; weekday: string; start: string; end: string; hours: string; status: string };
 type LeaveRequest = { id: number; type: string; start: string; end: string; days: number; reason: string; status: string };
+type CorrectionRequest = { id: number; date: string; kind: string; correctTime: string; reason: string; status: string };
 
 const history: Attendance[] = [
   { id: 1, date: "8月14日", weekday: "週五", start: "09:02", end: "18:07", hours: "8小時 05分", status: "準時" },
@@ -53,6 +54,8 @@ export default function Home() {
   const [clockInAt, setClockInAt] = useState<number | null>(null);
   const [hireDate, setHireDate] = useState("2023-04-17");
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
+  const [corrections, setCorrections] = useState<CorrectionRequest[]>([]);
+  const [showCorrection, setShowCorrection] = useState(false);
   const [toast, setToast] = useState("");
 
   useEffect(() => {
@@ -65,6 +68,8 @@ export default function Home() {
       setHireDate(localStorage.getItem("pulse-hire-date") || "2023-04-17");
       const stored = localStorage.getItem("pulse-leave-requests");
       if (stored) setRequests(JSON.parse(stored));
+      const storedCorrections = localStorage.getItem("pulse-correction-requests");
+      if (storedCorrections) setCorrections(JSON.parse(storedCorrections));
     }, 0);
     const timer = window.setInterval(() => setNow(new Date()), 1000);
     return () => { window.clearTimeout(initialize); window.clearInterval(timer); };
@@ -105,6 +110,18 @@ export default function Home() {
     setRequests(updated); localStorage.setItem("pulse-leave-requests", JSON.stringify(updated));
     event.currentTarget.reset(); setToast("請假申請已送出"); window.setTimeout(() => setToast(""), 2800);
   };
+  const submitCorrection = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const next: CorrectionRequest = {
+      id: Date.now(), date: String(form.get("date")), kind: String(form.get("kind")),
+      correctTime: String(form.get("correctTime")), reason: String(form.get("reason")), status: "待審核",
+    };
+    const updated = [next, ...corrections];
+    setCorrections(updated); localStorage.setItem("pulse-correction-requests", JSON.stringify(updated));
+    event.currentTarget.reset(); setShowCorrection(false); setToast("打卡更正申請已送出");
+    window.setTimeout(() => setToast(""), 2800);
+  };
 
   const workStatus = clockOut ? "今日已完成" : clockIn ? "工作中" : "尚未打卡";
   const buttonText = clockOut ? "今日已完成" : cooldownRemaining > 0 ? `防誤觸 ${cooldownRemaining} 秒` : clockIn ? "下班打卡" : "上班打卡";
@@ -130,6 +147,17 @@ export default function Home() {
           <button className="punch" onClick={punch} disabled={Boolean(clockOut) || cooldownRemaining > 0}><span className="fingerprint">◎</span>{buttonText}</button>
           <p className="hint">{cooldownRemaining > 0 ? "已鎖定下班按鈕，避免連續點擊誤打卡" : clockIn && !clockOut ? "下班打卡前會再次請你確認" : "打卡即代表你目前位於所登記的遠端工作地點"}</p>
           <div className="today-row"><div><span className="dot green" /><p>上班時間</p><b>{clockIn ?? "尚未打卡"}</b></div><i /><div><span className="dot coral" /><p>下班時間</p><b>{clockOut ?? "— —"}</b></div></div>
+          <div className="correction-entry"><span>時間不正確？原始紀錄會保留</span><button type="button" onClick={() => setShowCorrection(value => !value)}>{showCorrection ? "取消" : "申請打卡更正"}</button></div>
+          {showCorrection && <form className="correction-form" onSubmit={submitCorrection}>
+            <div className="correction-heading"><div><b>打卡更正申請</b><small>送出後由管理者審核，不會直接覆蓋原紀錄</small></div><span>待審核流程</span></div>
+            <div className="correction-fields">
+              <label>日期<input name="date" type="date" defaultValue={new Date().toISOString().slice(0, 10)} required /></label>
+              <label>更正項目<select name="kind" required><option>上班時間</option><option>下班時間</option><option>漏打卡</option><option>其他</option></select></label>
+              <label>正確時間<input name="correctTime" type="time" required /></label>
+            </div>
+            <label className="correction-reason">更正原因<textarea name="reason" rows={2} placeholder="例如：誤觸下班打卡、忘記打卡" required /></label>
+            <div className="correction-actions"><button type="button" onClick={() => setShowCorrection(false)}>取消</button><button type="submit">送出更正申請</button></div>
+          </form>}
         </section>
 
         <aside id="summary" className="side-column">
@@ -163,6 +191,7 @@ export default function Home() {
 
       <section id="records" className="records">
         <div className="section-title"><div><p className="eyebrow">RECENT ACTIVITY</p><h2>近期出勤</h2></div></div>
+        {corrections.length > 0 && <div className="correction-list"><div><span>更正申請</span><b>{corrections[0].date} · {corrections[0].kind}</b><small>更正為 {corrections[0].correctTime}</small></div><em>{corrections[0].status}</em></div>}
         <div className="table-wrap"><table><thead><tr><th>日期</th><th>上班</th><th>下班</th><th>總工時</th><th>狀態</th></tr></thead><tbody>{history.map(item => <tr key={item.id}><td><b>{item.date}</b><small>{item.weekday}</small></td><td>{item.start}</td><td>{item.end}</td><td>{item.hours}</td><td><span className={item.status === "補登" ? "tag amber" : "tag"}>{item.status}</span></td></tr>)}</tbody></table></div>
       </section>
 
