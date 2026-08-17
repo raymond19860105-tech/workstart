@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="簡潔、安心的遠端上班打卡與工時管理。">
+  <title>Pulse｜遠端工作打卡</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top"><span class="brand-mark"><i></i><i></i><i></i></span><b>Pulse</b></a>
+    <nav><a class="active" href="#today">今日打卡</a><a href="#records">出勤紀錄</a><a href="#summary">工時統計</a></nav>
+    <div class="profile"><span class="avatar">YL</span><div><b>雅玲</b><small>產品設計師</small></div></div>
+  </header>
+
+  <main>
+    <section id="top" class="hero">
+      <div><p class="eyebrow">REMOTE WORKSPACE</p><h1>早安，雅玲 <span>☀</span></h1><p>新的一天，專注做好重要的事。</p></div>
+      <div class="connection"><span></span><div><b>連線狀態良好</b><small>台北市 · 居家辦公</small></div></div>
+    </section>
+
+    <div class="content-grid">
+      <section id="today" class="clock-card">
+        <div class="date-line"><span id="date">正在同步時間…</span><em id="status">尚未打卡</em></div>
+        <div class="clock"><span id="clock">--:--</span><sup id="seconds">--</sup></div>
+        <p class="timezone">台北標準時間 GMT+8</p>
+        <button id="punch" class="punch"><span>◎</span><b>上班打卡</b></button>
+        <p class="hint">打卡即代表你目前位於所登記的遠端工作地點</p>
+        <div class="today-row">
+          <div><span class="dot green"></span><p>上班時間</p><b id="clock-in">尚未打卡</b></div><i></i>
+          <div><span class="dot coral"></span><p>下班時間</p><b id="clock-out">— —</b></div>
+        </div>
+      </section>
+
+      <aside id="summary" class="side-column">
+        <div class="week-card">
+          <div class="card-heading"><div><p>本週工時</p><h2>32<span>小時</span> 14<span>分</span></h2></div><span class="trend">↗ 6%</span></div>
+          <div class="goal"><span>本週目標</span><b>40 小時</b></div><div class="progress"><i></i></div>
+          <div class="bars"><div><i style="height:72%"></i><span>一</span></div><div><i style="height:88%"></i><span>二</span></div><div><i style="height:81%"></i><span>三</span></div><div><i style="height:92%"></i><span>四</span></div><div class="today"><i style="height:12%"></i><span>五</span></div></div>
+        </div>
+        <div class="quote"><span>“</span><p>專注不是對所有事說好，<br>而是對最重要的事說好。</p><small>— Steve Jobs</small></div>
+      </aside>
+    </div>
+
+    <section id="records" class="records">
+      <div class="section-title"><div><p class="eyebrow">RECENT ACTIVITY</p><h2>近期出勤</h2></div></div>
+      <div class="table-wrap"><table><thead><tr><th>日期</th><th>上班</th><th>下班</th><th>總工時</th><th>狀態</th></tr></thead><tbody>
+        <tr><td><b>8月14日</b><small>週五</small></td><td>09:02</td><td>18:07</td><td>8小時 05分</td><td><span class="tag">準時</span></td></tr>
+        <tr><td><b>8月13日</b><small>週四</small></td><td>08:56</td><td>18:12</td><td>8小時 16分</td><td><span class="tag">準時</span></td></tr>
+        <tr><td><b>8月12日</b><small>週三</small></td><td>09:08</td><td>18:01</td><td>7小時 53分</td><td><span class="tag amber">補登</span></td></tr>
+      </tbody></table></div>
+    </section>
+  </main>
+
+  <footer><b>Pulse</b><span>讓每個工作日，都有清晰的開始與結束。</span><small>© 2026 Pulse Workspace</small></footer>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="script.js"></script>
+</body>
+</html>
