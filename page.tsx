@@ -55,7 +55,6 @@ export default function Home() {
   const [hireDate, setHireDate] = useState("2023-04-17");
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [corrections, setCorrections] = useState<CorrectionRequest[]>([]);
-  const [showCorrection, setShowCorrection] = useState(false);
   const [toast, setToast] = useState("");
 
   useEffect(() => {
@@ -67,9 +66,9 @@ export default function Home() {
       setClockInAt(storedClockInAt ? Number(storedClockInAt) : null);
       setHireDate(localStorage.getItem("pulse-hire-date") || "2023-04-17");
       const stored = localStorage.getItem("pulse-leave-requests");
-      if (stored) setRequests(JSON.parse(stored));
       const storedCorrections = localStorage.getItem("pulse-correction-requests");
-      if (storedCorrections) setCorrections(JSON.parse(storedCorrections));
+      try { if (stored) setRequests(JSON.parse(stored)); } catch { localStorage.removeItem("pulse-leave-requests"); }
+      try { if (storedCorrections) setCorrections(JSON.parse(storedCorrections)); } catch { localStorage.removeItem("pulse-correction-requests"); }
     }, 0);
     const timer = window.setInterval(() => setNow(new Date()), 1000);
     return () => { window.clearTimeout(initialize); window.clearInterval(timer); };
@@ -119,7 +118,7 @@ export default function Home() {
     };
     const updated = [next, ...corrections];
     setCorrections(updated); localStorage.setItem("pulse-correction-requests", JSON.stringify(updated));
-    event.currentTarget.reset(); setShowCorrection(false); setToast("打卡更正申請已送出");
+    event.currentTarget.reset(); event.currentTarget.closest("details")?.removeAttribute("open"); setToast("打卡更正申請已送出");
     window.setTimeout(() => setToast(""), 2800);
   };
 
@@ -147,8 +146,9 @@ export default function Home() {
           <button className="punch" onClick={punch} disabled={Boolean(clockOut) || cooldownRemaining > 0}><span className="fingerprint">◎</span>{buttonText}</button>
           <p className="hint">{cooldownRemaining > 0 ? "已鎖定下班按鈕，避免連續點擊誤打卡" : clockIn && !clockOut ? "下班打卡前會再次請你確認" : "打卡即代表你目前位於所登記的遠端工作地點"}</p>
           <div className="today-row"><div><span className="dot green" /><p>上班時間</p><b>{clockIn ?? "尚未打卡"}</b></div><i /><div><span className="dot coral" /><p>下班時間</p><b>{clockOut ?? "— —"}</b></div></div>
-          <div className="correction-entry"><span>時間不正確？原始紀錄會保留</span><button type="button" onClick={() => setShowCorrection(value => !value)}>{showCorrection ? "取消" : "申請打卡更正"}</button></div>
-          {showCorrection && <form className="correction-form" onSubmit={submitCorrection}>
+          <details className="correction-details">
+            <summary><span>時間不正確？原始紀錄會保留</span><b>申請打卡更正</b></summary>
+            <form className="correction-form" onSubmit={submitCorrection}>
             <div className="correction-heading"><div><b>打卡更正申請</b><small>送出後由管理者審核，不會直接覆蓋原紀錄</small></div><span>待審核流程</span></div>
             <div className="correction-fields">
               <label>日期<input name="date" type="date" defaultValue={new Date().toISOString().slice(0, 10)} required /></label>
@@ -156,8 +156,9 @@ export default function Home() {
               <label>正確時間<input name="correctTime" type="time" required /></label>
             </div>
             <label className="correction-reason">更正原因<textarea name="reason" rows={2} placeholder="例如：誤觸下班打卡、忘記打卡" required /></label>
-            <div className="correction-actions"><button type="button" onClick={() => setShowCorrection(false)}>取消</button><button type="submit">送出更正申請</button></div>
-          </form>}
+            <div className="correction-actions"><button type="button" onClick={event => event.currentTarget.closest("details")?.removeAttribute("open")}>取消</button><button type="submit">送出更正申請</button></div>
+            </form>
+          </details>
         </section>
 
         <aside id="summary" className="side-column">
